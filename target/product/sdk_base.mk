@@ -32,7 +32,6 @@ PRODUCT_PACKAGES := \
 	LiveWallpapersPicker \
 	Mms \
 	Music \
-	Protips \
 	rild \
 	SdkSetup \
 	SmokeTest \
