@@ -19,6 +19,7 @@
 
 PRODUCT_PACKAGES := \
     Dialer \
+    InCallUI \
     rild
 
 PRODUCT_COPY_FILES := \
