@@ -20,6 +20,7 @@
 PRODUCT_PACKAGES := \
     CellBroadcastReceiver \
     Dialer \
+    InCallUI \
     rild
 
 PRODUCT_COPY_FILES := \
