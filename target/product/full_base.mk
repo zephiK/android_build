@@ -24,7 +24,6 @@ PRODUCT_PACKAGES := \
     WAPPushManager
 
 PRODUCT_PACKAGES += \
-    Galaxy4 \
     LiveWallpapers \
     LiveWallpapersPicker \
     PhotoTable
