@@ -18,7 +18,6 @@ PRODUCT_PROPERTY_OVERRIDES :=
 
 PRODUCT_PACKAGES := \
 	ApiDemos \
-	CubeLiveWallpapers \
 	CustomLocale \
 	Development \
 	DevelopmentSettings \
@@ -29,7 +28,6 @@ PRODUCT_PACKAGES := \
 	GestureBuilder \
 	librs_jni \
 	LiveWallpapersPicker \
-	Music \
 	rild \
 	SdkSetup \
 	SmokeTest \
