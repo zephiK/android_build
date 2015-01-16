@@ -767,7 +767,7 @@ def WriteBlockIncrementalOTAPackage(target_zip, source_zip, output_zip):
   # target_recovery = common.GetBootableImage(
   #     "/tmp/recovery.img", "recovery.img", OPTIONS.target_tmp, "RECOVERY")
   # updating_recovery = (source_recovery.data != target_recovery.data)
-   updating_recovery = false
+  updating_recovery = false
 
   system_src = GetImage("system", OPTIONS.source_tmp, OPTIONS.source_info_dict)
   system_tgt = GetImage("system", OPTIONS.target_tmp, OPTIONS.target_info_dict)
