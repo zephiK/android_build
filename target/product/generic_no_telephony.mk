@@ -22,6 +22,7 @@ PRODUCT_PACKAGES := \
     Gallery2 \
     MusicFX \
     OneTimeInitializer \
+    Provision \
     SystemUI \
     WallpaperCropper
 
