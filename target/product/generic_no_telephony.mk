@@ -20,7 +20,6 @@
 PRODUCT_PACKAGES := \
     Bluetooth \
     OneTimeInitializer \
-    Provision \
     SystemUI \
     WallpaperCropper
 
