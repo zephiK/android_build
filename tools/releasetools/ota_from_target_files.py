@@ -92,6 +92,7 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
   --stash_threshold <float>
       Specifies the threshold that will be used to compute the maximum
       allowed stash size (defaults to 0.8).
+
 """
 
 import sys
@@ -134,6 +135,7 @@ OPTIONS.full_bootloader = False
 # Stash size cannot exceed cache_size * threshold.
 OPTIONS.cache_size = None
 OPTIONS.stash_threshold = 0.8
+OPTIONS.backuptool = True
 
 def MostPopularKey(d, default):
   """Given a dict, return the key corresponding to the largest
@@ -148,7 +150,7 @@ def MostPopularKey(d, default):
 def IsSymlink(info):
   """Return true if the zipfile.ZipInfo object passed in represents a
   symlink."""
-  return (info.external_attr >> 16) == 0o120777
+  return (info.external_attr >> 16) & 0o770000 == 0o120000
 
 def IsRegular(info):
   """Return true if the zipfile.ZipInfo object passed in represents a
@@ -531,7 +533,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
       info_dict=OPTIONS.info_dict)
 
   has_recovery_patch = HasRecoveryPatch(input_zip)
-  block_based = OPTIONS.block_based
+  block_based = OPTIONS.block_based and has_recovery_patch
 
   #if not OPTIONS.omit_prereq:
   #  ts = GetBuildProp("ro.build.date.utc", OPTIONS.info_dict)
@@ -587,6 +589,16 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   script.AppendExtra("ifelse(is_mounted(\"/system\"), unmount(\"/system\"));")
   device_specific.FullOTA_InstallBegin()
+  
+  if OPTIONS.backuptool:
+    if block_based:
+      common.ZipWriteStr(output_zip, "system/bin/backuptool.sh",
+                     ""+input_zip.read("SYSTEM/bin/backuptool.sh"))
+      common.ZipWriteStr(output_zip, "system/bin/backuptool.functions",
+                     ""+input_zip.read("SYSTEM/bin/backuptool.functions"))
+    script.Mount("/system")
+    script.RunBackup("backup")
+    script.Unmount("/system")
 
   system_progress = 0.75
 
@@ -618,8 +630,8 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
     script.FormatPartition("/system")
     script.Mount("/system", recovery_mount_options)
     script.Mount("/data")
-    #if not has_recovery_patch:
-    #  script.UnpackPackageDir("recovery", "/system")
+    if not has_recovery_patch:
+      script.UnpackPackageDir("recovery", "/system")
     script.UnpackPackageDir("system", "/system")
 
     symlinks = CopyPartitionFiles(system_items, input_zip, output_zip)
@@ -661,6 +673,14 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
   common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
+  
+  if OPTIONS.backuptool:
+    script.ShowProgress(0.02, 10)
+    if block_based:
+      script.Mount("/system")
+    script.RunBackup("restore")
+    if block_based:
+      script.Unmount("/system")
 
   if block_based:
     script.Print("Flashing SuperSU...")
@@ -778,7 +798,7 @@ def WriteBlockIncrementalOTAPackage(target_zip, source_zip, output_zip):
       output_zip=output_zip,
       script=script,
       metadata=metadata,
-      info_dict=OPTIONS.source_info_dict)
+      info_dict=OPTIONS.info_dict)
 
   # TODO: Currently this works differently from WriteIncrementalOTAPackage().
   # This function doesn't consider thumbprints when writing
@@ -1178,7 +1198,7 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
       output_zip=output_zip,
       script=script,
       metadata=metadata,
-      info_dict=OPTIONS.source_info_dict)
+      info_dict=OPTIONS.info_dict)
 
   system_diff = FileDifference("system", source_zip, target_zip, output_zip)
   script.Mount("/system", recovery_mount_options)
@@ -1379,7 +1399,7 @@ else
 
     if not target_has_recovery_patch:
       def output_sink(fn, data):
-        # common.ZipWriteStr(output_zip, "recovery/" + fn, data)
+        common.ZipWriteStr(output_zip, "recovery/" + fn, data)
         system_items.Get("system/" + fn)
 
       common.MakeRecoveryPatch(OPTIONS.target_tmp, output_sink,
@@ -1453,9 +1473,9 @@ else
     script.Print("Unpacking new vendor files...")
     script.UnpackPackageDir("vendor", "/vendor")
 
-  # if updating_recovery and not target_has_recovery_patch:
-  #  script.Print("Unpacking new recovery...")
-  #  script.UnpackPackageDir("recovery", "/system")
+  if updating_recovery and not target_has_recovery_patch:
+    script.Print("Unpacking new recovery...")
+    script.UnpackPackageDir("recovery", "/system")
 
   system_diff.EmitRenames(script)
   if vendor_diff:
