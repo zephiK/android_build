@@ -13,21 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 # Base configuration for communication-oriented android devices
 # (phones, tablets, etc.).  If you want a change to apply to ALMOST ALL
 # devices (including non-phones and non-tablets), modify
 # core_minimal.mk instead. If you care about wearables, you need to modify
 # core_tiny.mk in addition to core_minimal.mk.
-
 PRODUCT_PACKAGES += \
-    Calculator \
     CalendarProvider \
     CaptivePortalLogin \
     CertInstaller \
     Contacts \
     DocumentsUI \
     DownloadProviderUi \
+    ExactCalculator \
     ExternalStorageProvider \
     FusedLocation \
     InputDevices \
@@ -45,5 +43,4 @@ PRODUCT_PACKAGES += \
     TeleService \
     VpnDialogs \
     MmsService
-
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_base.mk)
